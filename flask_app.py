@@ -59,6 +59,7 @@ def handle_dialog(req, res):
     user_id = req['session']['user_id']
 
     if req['session']['new']:
+        sessionStorage['stuff'] = "слон"
         # Это новый пользователь.
         # Инициализируем сессию и поприветствуем его.
         # Запишем подсказки, которые мы ему покажем в первый раз
@@ -68,10 +69,13 @@ def handle_dialog(req, res):
                 "Не хочу.",
                 "Не буду.",
                 "Отстань!",
+                "Не надо!",
+                "Помогите!",
+                "Уходите!",
             ]
         }
         # Заполняем текст ответа
-        res['response']['text'] = 'Привет! Купи слона!'
+        res['response']['text'] = f"Привет! Купи {sessionStorage['stuff']}а!"
         # Получим подсказки
         res['response']['buttons'] = get_suggests(user_id)
         return
@@ -88,16 +92,21 @@ def handle_dialog(req, res):
         'ладно',
         'куплю',
         'покупаю',
-        'хорошо'
+        'хорошо',
+        'я покупаю',
+        'я куплю'
     ]:
         # Пользователь согласился, прощаемся.
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        res['response']['end_session'] = True
-        return
+        res['response']['text'] = f"{sessionStorage['stuff'].capitalize()}а можно найти на Яндекс.Маркете!"
+        if sessionStorage['stuff'] == "слон":
+            sessionStorage['stuff'] = "кролик"
+        else:
+            res['response']['end_session'] = True
+            return
 
     # Если нет, то убеждаем его купить слона!
     res['response']['text'] = \
-        f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
+        f"Все говорят '{req['request']['original_utterance']}', а ты купи {sessionStorage['stuff']}а!"
     res['response']['buttons'] = get_suggests(user_id)
 
 
@@ -120,7 +129,7 @@ def get_suggests(user_id):
     if len(suggests) < 2:
         suggests.append({
             "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
+            "url": f"https://market.yandex.ru/search?text={sessionStorage['stuff']}",
             "hide": True
         })
 
